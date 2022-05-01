@@ -6,6 +6,7 @@
 * numpy
 * torch
 * ipykernel
+* sklearn
 
 ```shell
 pip install -e .
