@@ -140,7 +140,8 @@ class Unet(nn.Module):
         out_dim = None,
         dim_mults=(1, 2, 4, 8),
         channels = 3,
-        with_time_emb = True
+        with_time_emb = True,
+        device = "cuda" if torch.cuda.is_available() else "cpu"
     ):
         super().__init__()
         self.channels = channels
@@ -197,6 +198,8 @@ class Unet(nn.Module):
             ConvNextBlock(dim, dim),
             nn.Conv2d(dim, out_dim, 1)
         )
+
+        self.to(device)
 
     def forward(self, x, time):
         x = self.init_conv(x)

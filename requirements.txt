@@ -3,3 +3,6 @@ numpy
 torch
 ipykernel
 sklearn
+torchvision
+tqdm
+einops

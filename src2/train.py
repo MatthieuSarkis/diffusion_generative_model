@@ -19,12 +19,8 @@ class Trainer(object):
         image_size = 128,
         train_batch_size = 32,
         train_lr = 2e-5,
-        train_num_steps = 100000,
-        gradient_accumulate_every = 2,
         amp = False,
         step_start_ema = 2000,
-        update_ema_every = 10,
-        save_and_sample_every = 1000,
         results_folder = './results',
         device="cuda" if torch.cuda.is_available() else "cpu"
     ):
@@ -32,15 +28,11 @@ class Trainer(object):
         self.model = diffusion_model
         self.ema = EMA(ema_decay)
         self.ema_model = copy.deepcopy(self.model)
-        self.update_ema_every = update_ema_every
 
         self.step_start_ema = step_start_ema
-        self.save_and_sample_every = save_and_sample_every
 
         self.batch_size = train_batch_size
         self.image_size = diffusion_model.image_size
-        self.gradient_accumulate_every = gradient_accumulate_every
-        self.train_num_steps = train_num_steps
 
         self.ds = Dataset(dataset_size=dataset_size, image_size=image_size)
         self.dl = cycle(data.DataLoader(self.ds, batch_size = train_batch_size, shuffle=True, pin_memory=True))
@@ -84,14 +76,21 @@ class Trainer(object):
         self.ema_model.load_state_dict(data['ema'])
         self.scaler.load_state_dict(data['scaler'])
 
-    def train(self):
-        while self.step < self.train_num_steps:
-            for i in range(self.gradient_accumulate_every):
+    def train(
+        self,
+        train_num_steps: int,
+        gradient_accumulate_every: int = 2,
+        update_ema_every: int = 10,
+        save_and_sample_every: int = 1000,
+    ) -> None:
+
+        while self.step < train_num_steps:
+            for i in range(gradient_accumulate_every):
                 data = next(self.dl).to(self.device)
 
                 with autocast(enabled = self.amp):
                     loss = self.model(data)
-                    self.scaler.scale(loss / self.gradient_accumulate_every).backward()
+                    self.scaler.scale(loss / gradient_accumulate_every).backward()
 
                 print(f'{self.step}: {loss.item()}')
 
@@ -99,15 +98,26 @@ class Trainer(object):
             self.scaler.update()
             self.opt.zero_grad()
 
-            if self.step % self.update_ema_every == 0:
+            if self.step % update_ema_every == 0:
                 self.step_ema()
 
-            if self.step != 0 and self.step % self.save_and_sample_every == 0:
-                milestone = self.step // self.save_and_sample_every
+            if self.step != 0 and self.step % save_and_sample_every == 0:
+                milestone = self.step // save_and_sample_every
                 batches = num_to_groups(36, self.batch_size)
                 all_images_list = list(map(lambda n: self.ema_model.sample(batch_size=n), batches))
                 all_images = torch.cat(all_images_list, dim=0)
                 all_images = (all_images + 1) * 0.5
+                utils.save_image(all_images, str(self.results_folder / f'sample-{milestone}.png'), nrow = 6)
+                self.save(milestone)
+
+            if self.step == 1:
+                milestone = self.step // save_and_sample_every
+                batches = num_to_groups(1, self.batch_size)
+                all_images_list = list(map(lambda n: self.ema_model.sample(batch_size=n), batches))
+                all_images = torch.cat(all_images_list, dim=0)
+                all_images = torch.sign(all_images)
+                print(all_images[0])
+                exit()
                 utils.save_image(all_images, str(self.results_folder / f'sample-{milestone}.png'), nrow = 6)
                 self.save(milestone)
 

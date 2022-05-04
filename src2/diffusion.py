@@ -35,7 +35,8 @@ class GaussianDiffusion(nn.Module):
         image_size,
         channels = 3,
         timesteps = 1000,
-        loss_type = 'l1'
+        loss_type = 'l1',
+        device = "cuda" if torch.cuda.is_available() else "cpu",
     ):
         super().__init__()
         self.channels = channels
@@ -77,6 +78,8 @@ class GaussianDiffusion(nn.Module):
         self.register_buffer('posterior_log_variance_clipped', torch.log(posterior_variance.clamp(min =1e-20)))
         self.register_buffer('posterior_mean_coef1', betas * torch.sqrt(alphas_cumprod_prev) / (1. - alphas_cumprod))
         self.register_buffer('posterior_mean_coef2', (1. - alphas_cumprod_prev) * torch.sqrt(alphas) / (1. - alphas_cumprod))
+
+        self.to(device)
 
     def q_mean_variance(self, x_start, t):
         mean = extract(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start

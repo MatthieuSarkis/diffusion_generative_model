@@ -9,6 +9,7 @@ build/
 dist/
 playground*
 saved_models/
+*.out
 
 tuto/
 
