@@ -1,6 +1,6 @@
 import torch
 
-from src.neural_net import ConditionalModel
+from src_old.neural_net import ConditionalModel
 
 class Diffusion():
 

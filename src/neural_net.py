@@ -3,7 +3,7 @@ import torch
 from torch import nn, einsum
 from einops import rearrange
 
-from src2.utils import default, exists
+from src.utils import default, exists
 
 class Residual(nn.Module):
     def __init__(self, fn):

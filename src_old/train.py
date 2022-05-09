@@ -3,9 +3,9 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.diffusion import Diffusion
-from src.neural_net import ConditionalModel
-from src.ema import EMA
+from src_old.diffusion import Diffusion
+from src_old.neural_net import ConditionalModel
+from src_old.ema import EMA
 
 class Trainer():
 

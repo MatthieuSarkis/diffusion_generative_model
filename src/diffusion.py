@@ -3,7 +3,7 @@ from torch import nn
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from src2.utils import default
+from src.utils import default
 
 def extract(a, t, x_shape):
     b, *_ = t.shape

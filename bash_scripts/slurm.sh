@@ -16,7 +16,7 @@ export OMP_NUM_THREADS=1
 module load lang/Python
 . /home/users/msarkis/git_repositories/diffusion_generative_model/.env/bin/activate
 module load toolchain/intel
-python src2/main.py
+python src/main.py
 
 #python $1
 

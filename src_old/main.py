@@ -1,7 +1,7 @@
 import torch
 
-from src.data import sample_batch
-from src.train import Trainer
+from src_old.data import sample_batch
+from src_old.train import Trainer
 
 def main():
 
