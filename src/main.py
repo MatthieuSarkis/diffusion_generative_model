@@ -16,8 +16,7 @@ diffusion = GaussianDiffusion(
     model,
     image_size = 128,
     channels=1,
-    #timesteps = 1000,
-    timesteps = 10,
+    timesteps = 1000,
     loss_type = 'l1',
     device=DEVICE
 )
@@ -32,8 +31,8 @@ trainer = Trainer(
 )
 
 trainer.train(
-    train_num_steps=700000,
+    train_num_steps=70000,
     gradient_accumulate_every=2,
     update_ema_every=10,
-    save_and_sample_every=1000,
+    save_and_sample_every=500,
 )
