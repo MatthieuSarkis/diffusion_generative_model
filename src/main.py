@@ -1,18 +1,39 @@
+from src.neural_net import Unet
+from src.diffusion import GaussianDiffusion 
+from src.train import Trainer
 import torch
 
-from src.data import sample_batch
-from src.train import Trainer
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-def main():
+model = Unet(
+    dim = 64,
+    channels=1,
+    dim_mults = (1, 2, 4, 8),
+    device=DEVICE
+)
 
-    dataset = torch.tensor(sample_batch(10**4), dtype=torch.float)
-    n_steps = 100
-    batch_size = 128
-    epochs = 1000
+diffusion = GaussianDiffusion(
+    model,
+    image_size = 128,
+    channels=1,
+    #timesteps = 1000,
+    timesteps = 10,
+    loss_type = 'l1',
+    device=DEVICE
+)
 
-    trainer = Trainer(n_steps=n_steps)
-    trainer.train(dataset=dataset, batch_size=batch_size, epochs=epochs)
+trainer = Trainer(
+    diffusion,
+    dataset_size=1000,
+    train_batch_size = 32,
+    train_lr = 2e-5,
+    ema_decay = 0.995,
+    amp = True
+)
 
-if __name__ == '__main__':
-
-    main()
+trainer.train(
+    train_num_steps=700000,
+    gradient_accumulate_every=2,
+    update_ema_every=10,
+    save_and_sample_every=1000,
+)
